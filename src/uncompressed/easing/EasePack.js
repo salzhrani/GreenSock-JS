@@ -23,6 +23,7 @@ const _HALF_PI = Math.PI / 2;
 const createEaseClass = (fn) => {
 	return class extends Ease {
 		constructor() {
+			super();
 			this.getRatio = fn;
 		}
 	};
@@ -34,18 +35,20 @@ const wrapEase = (name, EaseOut, EaseIn, EaseInOut, aliases) => {
 		easeIn: new EaseIn(),
 		easeInOut: new EaseInOut(),
 	});
-	Ease.register(name, c);
+	Ease.register(c, name);
 	return c;
 }
 
-const EasePoint = (time, value, next) => {
-	this.t = time;
-	this.v = value;
-	if (next) {
-		this.next = next;
-		next.prev = this;
-		this.c = next.v - value;
-		this.gap = next.t - time;
+class EasePoint{
+	constructor(time, value, next){
+		this.t = time;
+		this.v = value;
+		if (next) {
+			this.next = next;
+			next.prev = this;
+			this.c = next.v - value;
+			this.gap = next.t - time;
+		}
 	}
 };
 
@@ -53,6 +56,7 @@ const EasePoint = (time, value, next) => {
 const _createBack = function(n, fn) {
 	return class C extends Ease {
 		constructor(overshoot) {
+			super(overshoot);
 			this._p1 = (overshoot || overshoot === 0) ? overshoot : 1.70158;
 			this._p2 = this._p1 * 1.525;
 			this.getRatio = fn;
@@ -84,6 +88,7 @@ export const SlowMo = class extends Ease {
 		} else if (linearRatio > 1) {
 			plinearRatio = 1;
 		}
+		super(linearRatio, power, yoyoMode);
 		this._p = (plinearRatio !== 1) ? ppower : 0;
 		this._p1 = (1 - plinearRatio) / 2;
 		this._p2 = plinearRatio;
@@ -104,13 +109,12 @@ export const SlowMo = class extends Ease {
 	}
 };
 
-		
-let _createElastic;
 SlowMo.ease = new SlowMo(0.7, 0.7);
 
 // SteppedEase
 export const SteppedEase = class extends Ease {
 	constructor(steps = 1) {
+		super(steps);
 		this._p1 = 1 / steps;
 		this._p2 = steps + 1;
 	}
@@ -134,6 +138,7 @@ export const SteppedEase = class extends Ease {
 // RoughEase
 export const RoughEase = class extends Ease {
 	constructor(vars = {}) {
+		super(vars);
 		var taper = vars.taper || "none",
 			a = [],
 			cnt = 0,
@@ -272,6 +277,7 @@ createEaseClass('CircInOut', (p) => {
 const _createElastic = (n, f, def) => {
 	return class E extends Ease {
 		constructor(amplitude, period) {
+			super(amplitude, period);
 			this._p1 = (amplitude >= 1) ? amplitude : 1; //note: if amplitude is < 1, we simply adjust the period for a more natural feel. Otherwise the math doesn't work right and the curve starts at 1.
 			this._p2 = (period || def) / (amplitude < 1 ? amplitude : 1);
 			this._p3 = this._p2 / _2PI * (Math.asin(1 / this._p1) || 0);

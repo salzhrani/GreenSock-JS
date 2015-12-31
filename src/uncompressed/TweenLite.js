@@ -11,19 +11,6 @@
  */
 const _emptyFunc = () => {};
 let _ticker;
-		// var _globals = window.GreenSockGlobals = window.GreenSockGlobals || window;
-		// if (_globals.TweenLite) {
-		// 	return; //in case the core set of classes is already loaded, don't instantiate twice.
-		// }
-		// var _namespace = function(ns) {
-		// 		var a = ns.split("."),
-		// 			p = _globals, i;
-		// 		for (i = 0; i < a.length; i++) {
-		// 			p[a[i]] = p = p[a[i]] || {};
-		// 		}
-		// 		return p;
-		// 	},
-		// 	gs = _namespace("com.greensock"),
 const _tinyNum = 0.0000000001;
 const _slice = function(a) { //don't use Array.prototype.slice.call(target, 0) because that doesn't work in IE8 with a NodeList that's returned by querySelectorAll()
 	var b = [],
@@ -39,96 +26,6 @@ const _isArray = (function _isArray() { //works around issues in iframe environm
 		return obj != null && (obj instanceof Array || (typeof(obj) === "object" && !!obj.push && toString.call(obj) === array));
 	};
 }());
-		// 	a, i, p, _ticker, _tickerActive,
-		// 	_defLookup = {},
-
-			/**
-			 * @constructor
-			 * Defines a GreenSock class, optionally with an array of dependencies that must be instantiated first and passed into the definition.
-			 * This allows users to load GreenSock JS files in any order even if they have interdependencies (like CSSPlugin extends TweenPlugin which is
-			 * inside TweenLite.js, but if CSSPlugin is loaded first, it should wait to run its code until TweenLite.js loads and instantiates TweenPlugin
-			 * and then pass TweenPlugin to CSSPlugin's definition). This is all done automatically and internally.
-			 *
-			 * Every definition will be added to a "com.greensock" global object (typically window, but if a window.GreenSockGlobals object is found,
-			 * it will go there as of v1.7). For example, TweenLite will be found at window.com.greensock.TweenLite and since it's a global class that should be available anywhere,
-			 * it is ALSO referenced at window.TweenLite. However some classes aren't considered global, like the base com.greensock.core.Animation class, so
-			 * those will only be at the package like window.com.greensock.core.Animation. Again, if you define a GreenSockGlobals object on the window, everything
-			 * gets tucked neatly inside there instead of on the window directly. This allows you to do advanced things like load multiple versions of GreenSock
-			 * files and put them into distinct objects (imagine a banner ad uses a newer version but the main site uses an older one). In that case, you could
-			 * sandbox the banner one like:
-			 *
-			 * <script>
-			 *     var gs = window.GreenSockGlobals = {}; //the newer version we're about to load could now be referenced in a "gs" object, like gs.TweenLite.to(...). Use whatever alias you want as long as it's unique, "gs" or "banner" or whatever.
-			 * </script>
-			 * <script src="js/greensock/v1.7/TweenMax.js"></script>
-			 * <script>
-			 *     window.GreenSockGlobals = window._gsQueue = window._gsDefine = null; //reset it back to null (along with the special _gsQueue variable) so that the next load of TweenMax affects the window and we can reference things directly like TweenLite.to(...)
-			 * </script>
-			 * <script src="js/greensock/v1.6/TweenMax.js"></script>
-			 * <script>
-			 *     gs.TweenLite.to(...); //would use v1.7
-			 *     TweenLite.to(...); //would use v1.6
-			 * </script>
-			 *
-			 * @param {!string} ns The namespace of the class definition, leaving off "com.greensock." as that's assumed. For example, "TweenLite" or "plugins.CSSPlugin" or "easing.Back".
-			 * @param {!Array.<string>} dependencies An array of dependencies (described as their namespaces minus "com.greensock." prefix). For example ["TweenLite","plugins.TweenPlugin","core.Animation"]
-			 * @param {!function():Object} func The function that should be called and passed the resolved dependencies which will return the actual class for this definition.
-			 * @param {boolean=} global If true, the class will be added to the global scope (typically window unless you define a window.GreenSockGlobals object)
-			 */
-		// 	Definition = function(ns, dependencies, func, global) {
-		// 		this.sc = (_defLookup[ns]) ? _defLookup[ns].sc : []; //subclasses
-		// 		_defLookup[ns] = this;
-		// 		this.gsClass = null;
-		// 		this.func = func;
-		// 		var _classes = [];
-		// 		this.check = function(init) {
-		// 			var i = dependencies.length,
-		// 				missing = i,
-		// 				cur, a, n, cl, hasModule;
-		// 			while (--i > -1) {
-		// 				if ((cur = _defLookup[dependencies[i]] || new Definition(dependencies[i], [])).gsClass) {
-		// 					_classes[i] = cur.gsClass;
-		// 					missing--;
-		// 				} else if (init) {
-		// 					cur.sc.push(this);
-		// 				}
-		// 			}
-		// 			if (missing === 0 && func) {
-		// 				a = ("com.greensock." + ns).split(".");
-		// 				n = a.pop();
-		// 				cl = _namespace(a.join("."))[n] = this.gsClass = func.apply(func, _classes);
-
-		// 				//exports to multiple environments
-		// 				if (global) {
-		// 					_globals[n] = cl; //provides a way to avoid global namespace pollution. By default, the main classes like TweenLite, Power1, Strong, etc. are added to window unless a GreenSockGlobals is defined. So if you want to have things added to a custom object instead, just do something like window.GreenSockGlobals = {} before loading any GreenSock files. You can even set up an alias like window.GreenSockGlobals = windows.gs = {} so that you can access everything like gs.TweenLite. Also remember that ALL classes are added to the window.com.greensock object (in their respective packages, like com.greensock.easing.Power1, com.greensock.TweenLite, etc.)
-		// 					hasModule = (typeof(module) !== "undefined" && module.exports);
-		// 					if (!hasModule && typeof(define) === "function" && define.amd){ //AMD
-		// 						define((window.GreenSockAMDPath ? window.GreenSockAMDPath + "/" : "") + ns.split(".").pop(), [], function() { return cl; });
-		// 					} else if (ns === moduleName && hasModule){ //node
-		// 						module.exports = cl;
-		// 					}
-		// 				}
-		// 				for (i = 0; i < this.sc.length; i++) {
-		// 					this.sc[i].check();
-		// 				}
-		// 			}
-		// 		};
-		// 		this.check(true);
-		// 	},
-
-		// 	//used to create Definition instances (which basically registers a class that has dependencies).
-		// 	_gsDefine = window._gsDefine = function(ns, dependencies, func, global) {
-		// 		return new Definition(ns, dependencies, func, global);
-		// 	},
-
-		// 	//a quick way to create a class that doesn't have any dependencies. Returns the class, but first registers it in the GreenSock namespace so that other classes can grab it (other classes might be dependent on the class).
-		// 	_class = gs._class = function(ns, func, global) {
-		// 		func = func || function() {};
-		// 		_gsDefine(ns, [], function(){ return func; }, global);
-		// 		return func;
-		// 	};
-
-		// _gsDefine.globals = _globals;
 
 /*
  * ----------------------------------------------------------------
@@ -201,29 +98,7 @@ Ease.map = {};
 			// 	}
 			// };
 
-		// p = Ease.prototype;
-		// p._calcEnd = false;
-		// p.getRatio = function(p) {
-		// 	if (this._func) {
-		// 		this._params[0] = p;
-		// 		return this._func.apply(null, this._params);
-		// 	}
-		// 	var t = this._type,
-		// 		pw = this._power,
-		// 		r = (t === 1) ? 1 - p : (t === 2) ? p : (p < 0.5) ? p * 2 : (1 - p) * 2;
-		// 	if (pw === 1) {
-		// 		r *= r;
-		// 	} else if (pw === 2) {
-		// 		r *= r * r;
-		// 	} else if (pw === 3) {
-		// 		r *= r * r * r;
-		// 	} else if (pw === 4) {
-		// 		r *= r * r * r * r;
-		// 	}
-		// 	return (t === 1) ? 1 - r : (t === 2) ? r : (p < 0.5) ? r / 2 : 1 - (r / 2);
-		// };
-
-		//create all the standard eases like Linear, Quad, Cubic, Quart, Quint, Strong, Power0, Power1, Power2, Power3, and Power4 (each with easeIn, easeOut, and easeInOut)
+// create all the standard eases like Linear, Quad, Cubic, Quart, Quint, Strong, Power0, Power1, Power2, Power3, and Power4 (each with easeIn, easeOut, and easeInOut)
 const a = ['Linear', 'Quad', 'Cubic', 'Quart', 'Quint,Strong'];
 let i = a.length;
 let p;
@@ -421,10 +296,6 @@ class Ticker extends EventDispatcher {
 		}, 1500);
 	}
 }
-
-		// p = gs.Ticker.prototype = new gs.events.EventDispatcher();
-		// p.constructor = gs.Ticker;
-
 
 /*
  * ----------------------------------------------------------------
@@ -761,7 +632,6 @@ class SimpleTimeline extends Animation {
 	constructor(vars) {
 		super(vars);
 		this.autoRemoveChildren = this.smoothChildTiming = true;
-		this.kill()._gc = false;
 		this._first = this._last = this._recent = null;
 		this._sortChildren = false;
 	}
@@ -858,6 +728,8 @@ class SimpleTimeline extends Animation {
 	}
 }
 
+SimpleTimeline.prototype.kill()._gc = false;
+
 /*
  * ----------------------------------------------------------------
  * TweenLite
@@ -866,9 +738,8 @@ class SimpleTimeline extends Animation {
 
 export const TweenLite = class TweenLite extends Animation {
 	constructor(target, duration, vars) {
-		super(target, duration, vars);
+		super(duration, vars);
 		this._ease = TweenLite.defaultEase;
-		this.kill()._gc = false;
 		this.ratio = 0;
 		this._firstPT = this._targets = this._overwrittenProthiss = this._startAt = null;
 		this._notifyPluginsOfEnabled = this._lazy = false;
@@ -1378,6 +1249,9 @@ export const TweenLite = class TweenLite extends Animation {
 	}
 };
 
+
+TweenLite.prototype.kill()._gc = false;
+
 TweenLite.version = "1.18.2";
 TweenLite.defaultEase = new Ease(null, null, 1, 1);
 TweenLite.defaultOverwrite = "auto";
@@ -1505,10 +1379,10 @@ _addPropTween = function(target, prop, start, end, overwriteProp, round, funcPar
 	}
 };
 // _internals = TweenLite._internals = {isArray:_isArray, isSelector:_isSelector, lazyTweens:_lazyTweens, blobDif:_blobDif}, //gives us a way to expose certain private values to other GreenSock classes without contaminating tha main TweenLite object.
-// _plugins = TweenLite._plugins = {},
+const _plugins = {};
 const _tweenLookup = {};
 let _tweenLookupNum = 0;
-// _reservedProps = _internals.reservedProps = {ease:1, delay:1, overwrite:1, onComplete:1, onCompleteParams:1, onCompleteScope:1, useFrames:1, runBackwards:1, startAt:1, onUpdate:1, onUpdateParams:1, onUpdateScope:1, onStart:1, onStartParams:1, onStartScope:1, onReverseComplete:1, onReverseCompleteParams:1, onReverseCompleteScope:1, onRepeat:1, onRepeatParams:1, onRepeatScope:1, easeParams:1, yoyo:1, immediateRender:1, repeat:1, repeatDelay:1, data:1, paused:1, reversed:1, autoCSS:1, lazy:1, onOverwrite:1, callbackScope:1, stringFilter:1},
+const _reservedProps = {ease:1, delay:1, overwrite:1, onComplete:1, onCompleteParams:1, onCompleteScope:1, useFrames:1, runBackwards:1, startAt:1, onUpdate:1, onUpdateParams:1, onUpdateScope:1, onStart:1, onStartParams:1, onStartScope:1, onReverseComplete:1, onReverseCompleteParams:1, onReverseCompleteScope:1, onRepeat:1, onRepeatParams:1, onRepeatScope:1, easeParams:1, yoyo:1, immediateRender:1, repeat:1, repeatDelay:1, data:1, paused:1, reversed:1, autoCSS:1, lazy:1, onOverwrite:1, callbackScope:1, stringFilter:1};
 const _overwriteLookup = {none:0, all:1, auto:2, concurrent:3, allOnStart:4, preexisting:5, "true":1, "false":0};
 _rootFramesTimeline = Animation._rootFramesTimeline = new SimpleTimeline();
 _rootTimeline = Animation._rootTimeline = new SimpleTimeline();
@@ -1527,9 +1401,9 @@ const _lazyRender = function() {
 	_lazyTweens.length = 0;
 };
 
-// _rootTimeline._startTime = _ticker.time;
-// _rootFramesTimeline._startTime = _ticker.frame;
-// _rootTimeline._active = _rootFramesTimeline._active = true;
+_rootTimeline._startTime = _ticker.time;
+_rootFramesTimeline._startTime = _ticker.frame;
+_rootTimeline._active = _rootFramesTimeline._active = true;
 setTimeout(_lazyRender, 1); //on some mobile devices, there isn't a "tick" before code runs which means any lazy renders wouldn't run before the next official "tick".
 
 Animation._updateRoot = TweenLite.render = function() {
